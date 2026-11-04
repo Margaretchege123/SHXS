@@ -5,7 +5,116 @@ function getToken() {
   return sessionStorage.getItem("bt_token");
 }
 
+const STATIC_USERS = [
+  { username: "parent", password: "parent123", role: "applicant" },
+  { username: "clerk", password: "clerk123", role: "clerk" },
+  { username: "admin", password: "admin123", role: "admin" },
+];
+
+function getStaticSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem("bt_static_session"));
+  } catch {
+    return null;
+  }
+}
+
+async function getStaticApplications() {
+  let applications;
+  try {
+    applications = JSON.parse(localStorage.getItem("bt_applications"));
+  } catch {
+    applications = null;
+  }
+  if (!Array.isArray(applications)) {
+    const response = await fetch("data.json");
+    applications = await response.json();
+  }
+  return applications;
+}
+
+async function staticApi(requestPath, options = {}) {
+  const url = new URL(requestPath, window.location.href);
+  const body = options.body ? JSON.parse(options.body) : {};
+  const session = getStaticSession();
+
+  if (url.pathname.endsWith("/api/login") && options.method === "POST") {
+    const user = STATIC_USERS.find((item) =>
+      item.username === body.username &&
+      item.password === body.password &&
+      item.role === body.role
+    );
+    if (!user) throw new Error("Invalid username, password or role.");
+    const nextSession = { username: user.username, role: user.role };
+    sessionStorage.setItem("bt_token", `static-${user.username}`);
+    sessionStorage.setItem("bt_static_session", JSON.stringify(nextSession));
+    return { token: `static-${user.username}`, user: nextSession };
+  }
+
+  if (!session) throw new Error("Authentication required.");
+  if (url.pathname.endsWith("/api/session")) return { user: session };
+  if (url.pathname.endsWith("/api/logout")) {
+    sessionStorage.removeItem("bt_token");
+    sessionStorage.removeItem("bt_static_session");
+    return { ok: true };
+  }
+
+  const applications = await getStaticApplications();
+  if (url.pathname.endsWith("/api/applications") && options.method === "POST") {
+    const required = ["childName", "dob", "gender", "birthPlace", "parentName", "parentId", "parentPhone"];
+    if (required.some((field) => !String(body[field] || "").trim())) throw new Error("All required application fields must be provided.");
+    const duplicate = applications.find((app) =>
+      String(app.childName).trim().toLowerCase() === String(body.childName).trim().toLowerCase() &&
+      app.dob === body.dob &&
+      String(app.parentId).trim() === String(body.parentId).trim()
+    );
+    if (duplicate) throw new Error(`Duplicate application already exists (${duplicate.id}, status: ${duplicate.status}).`);
+    const highest = applications.reduce((max, app) => Math.max(max, Number(/^BT-(\d+)$/i.exec(app.id)?.[1] || 0)), 0);
+    const application = {
+      id: `BT-${String(highest + 1).padStart(4, "0")}`,
+      childName: String(body.childName).trim(),
+      dob: body.dob,
+      gender: body.gender,
+      birthPlace: String(body.birthPlace).trim(),
+      parentName: String(body.parentName).trim(),
+      parentId: String(body.parentId).trim(),
+      parentPhone: String(body.parentPhone).trim(),
+      submittedBy: session.username,
+      dateSubmitted: new Date().toISOString().slice(0, 10),
+      status: "Submitted",
+    };
+    applications.push(application);
+    localStorage.setItem("bt_applications", JSON.stringify(applications));
+    return { application };
+  }
+
+  const statusMatch = /\/api\/applications\/([^/]+)\/status$/.exec(url.pathname);
+  if (statusMatch && options.method === "PATCH") {
+    if (session.role !== "clerk" && session.role !== "admin") throw new Error("Only staff can update application status.");
+    const application = applications.find((item) => item.id === decodeURIComponent(statusMatch[1]));
+    if (!application) throw new Error("Application not found.");
+    application.status = body.status;
+    localStorage.setItem("bt_applications", JSON.stringify(applications));
+    return { application };
+  }
+
+  if (url.pathname.endsWith("/api/applications")) {
+    const visible = session.role === "clerk" || session.role === "admin"
+      ? applications
+      : applications.filter((app) => app.submittedBy === session.username);
+    const search = String(url.searchParams.get("q") || "").trim().toLower();
+    const filtered = search
+      ? visible.filter((app) => String(app.id).toLower() === search || String(app.parentId).toLower() === search || String(app.childName).toLower().includes(search))
+      : visible;
+    return { applications: filtered };
+  }
+  throw new Error("API endpoint not found.");
+}
+
 async function api(requestPath, options = {}) {
+  if (window.location.hostname.endsWith("github.io") || window.location.protocol === "file:") {
+    return staticApi(requestPath, options);
+  }
   const headers = { ...(options.headers || {}) };
   if (options.body) headers["Content-Type"] = "application/json";
   if (getToken()) headers.Authorization = `Bearer ${getToken()}`;
