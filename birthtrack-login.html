@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BirthTrack System — Login</title>
+<link rel="stylesheet" href="birthtrack-style.css" />
+</head>
+<body>
+
+<div class="login-wrapper">
+  <form class="login-panel" id="loginForm" novalidate>
+    <h1>birthtrack system</h1>
+    <p class="subtitle">birthtrack centre, kisii</p>
+
+    <div class="field-group">
+      <label class="field-label" for="role">Role</label>
+      <select id="role" name="role">
+        <option value="applicant">Applicant (Parent)</option>
+        <option value="clerk">Registration Clerk</option>
+        <option value="admin">System Administrator</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username" required />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="password">password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary sign-in-btn">sign in</button>
+
+    <p class="login-error" id="loginError"></p>
+    <p class="login-hint">
+      demo logins<br />
+      parent / parent123 &nbsp;|&nbsp; clerk / clerk123 &nbsp;|&nbsp; admin / admin123
+    </p>
+  </form>
+</div>
+
+<script src="birthtrack-script.js"></script>
+</body>
+</html>

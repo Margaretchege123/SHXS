@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BirthTrack System — Dashboard</title>
+<link rel="stylesheet" href="birthtrack-style.css" />
+</head>
+<body>
+
+<div class="dash-wrapper">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <h2>birthtrack system<br />birthtrack centre, kisii</h2>
+    <div class="role-badge" id="roleBadge"></div>
+
+    <button class="nav-btn active" data-panel="overview">Overview</button>
+    <button class="nav-btn" data-panel="new">New application</button>
+    <button class="nav-btn" data-panel="applications" id="navApplications">Applications</button>
+    <button class="nav-btn" data-panel="search">Track / Search</button>
+
+    <button class="btn btn-danger logout-btn" id="logoutBtn">Log out</button>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="panel active" id="panel-overview">
+      <div class="panel-header">
+        <h3>overview</h3>
+        <button class="btn btn-primary" data-goto="new">New application</button>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card status-submitted"><div class="label">submitted</div><div class="value" id="countSubmitted">0</div></div>
+        <div class="summary-card status-review"><div class="label">under review</div><div class="value" id="countReview">0</div></div>
+        <div class="summary-card status-approved"><div class="label">approved</div><div class="value" id="countApproved">0</div></div>
+        <div class="summary-card status-issued"><div class="label">issued</div><div class="value" id="countIssued">0</div></div>
+      </div>
+
+      <div class="panel-header"><h3>recent applications</h3></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Application ID</th>
+            <th>Child name</th>
+            <th>Date submitted</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="recentBody"></tbody>
+      </table>
+    </section>
+
+    <!-- ---------- NEW APPLICATION ---------- -->
+    <section class="panel" id="panel-new">
+      <div class="panel-header"><h3>new birth certificate application</h3></div>
+
+      <form class="app-form" id="appForm">
+        <div class="duplicate-warning" id="duplicateWarning"></div>
+
+        <div class="field-group">
+          <label class="field-label" for="childName">Child's full name</label>
+          <input type="text" id="childName" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="childDob">Date of birth</label>
+          <input type="date" id="childDob" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="childGender">Gender</label>
+          <select id="childGender" required>
+            <option value="">Select</option>
+            <option>Female</option>
+            <option>Male</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="birthPlace">Place of birth</label>
+          <input type="text" id="birthPlace" placeholder="Hospital / location in Kisii" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="parentName">Parent's full name</label>
+          <input type="text" id="parentName" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="parentId">Parent's national ID</label>
+          <input type="text" id="parentId" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="parentPhone">Parent's phone</label>
+          <input type="tel" id="parentPhone" required />
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="supportDoc">Supporting document (notification of birth)</label>
+          <input type="file" id="supportDoc" accept=".pdf,.jpg,.jpeg,.png" />
+        </div>
+
+        <div class="form-actions">
+          <button type="reset" class="btn">Clear</button>
+          <button type="submit" class="btn btn-primary">Submit application</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ---------- APPLICATIONS (clerk/admin: all, applicant: own) ---------- -->
+    <section class="panel" id="panel-applications">
+      <div class="panel-header"><h3 id="applicationsTitle">applications</h3></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Application ID</th>
+            <th>Child name</th>
+            <th>Parent ID</th>
+            <th>Date submitted</th>
+            <th>Status</th>
+            <th id="actionHeader">Action</th>
+          </tr>
+        </thead>
+        <tbody id="applicationsBody"></tbody>
+      </table>
+    </section>
+
+    <!-- ---------- TRACK / SEARCH ---------- -->
+    <section class="panel" id="panel-search">
+      <div class="panel-header"><h3>track / search records</h3></div>
+
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Application ID, Parent National ID or Child's full name" />
+        <button class="btn btn-primary" id="searchBtn">Search</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Application ID</th>
+            <th>Child name</th>
+            <th>Parent ID</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="searchBody">
+          <tr class="empty-row"><td colspan="4">Enter a search term above.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<script src="birthtrack-script.js"></script>
+</body>
+</html>
